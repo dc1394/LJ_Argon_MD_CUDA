@@ -9,23 +9,19 @@
 #define _AR_MOLECULARDYNAMICS_H_
 
 #pragma once
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 
 #include "../myrandom/myrand.h"
 #include <cstdint>                                  // for std::int32_t
 #include <cmath>                                    // for std::sqrt, std::pow
 #include <iostream>                                 // for std::ios_base::fixed, std::ios_base::floatfield, std::cout
-#include <memory>
-#include <boost/format.hpp>
+#include <boost/format.hpp>                         // for boost::format
 #include <boost/range/algorithm/generate.hpp>       // for boost::generate
-#include <thrust/copy.h>
-#include <thrust/reduce.h>
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-#include <thrust/execution_policy.h>
-#include <thrust/transform.h>
-#include <thrust/functional.h>
+#include <thrust/copy.h>                            // for thrust::copy
+#include <thrust/device_vector.h>                   // for thrust::device_vector
+#include <thrust/execution_policy.h>                // for thrust::device
+#include <thrust/host_vector.h>                     // for thrust::host_vector
+#include <thrust/reduce.h>                          // for thrust::reduce
+#include <thrust/transform.h>                       // for thrust::transform
 
 namespace moleculardynamics {
     //! A function.
@@ -50,7 +46,7 @@ namespace moleculardynamics {
     /*!
         周期境界条件をチェックする
         \param r 各原子の座標
-        \param r1 原子の初期座標
+        \param r1 各原子の初期座標
         \param periodiclen 周期境界条件の長さ
     */
     __global__ void check_periodic(
@@ -60,7 +56,13 @@ namespace moleculardynamics {
 
     //! A function.
     /*!
-        原子を移動させる（第一ステップ、コア部分）
+        修正Euler法で原子を移動させる（第一ステップだけ呼ばれる、コア部分）
+        \param F 各原子に働く力
+        \param r 各原子の座標
+        \param r1 各原子の初期座標
+        \param V 各原子の速度
+        \param dt2 時間刻みの二乗
+        \param s Woodcockの温度スケーリングの定数
     */
     __global__ void Move_Atoms1_Core(
         float4 const * F,
@@ -72,7 +74,13 @@ namespace moleculardynamics {
 
     //! A function.
     /*!
-        原子を移動させる（コア部分）
+        Verlet法で原子を移動させる（第一ステップ以外で呼ばれる、コア部分）
+        \param F 各原子に働く力
+        \param r 各原子の座標
+        \param r1 各原子の初期座標
+        \param V 各原子の速度
+        \param dt2 時間刻みの二乗
+        \param s Woodcockの温度スケーリングの定数
     */
     __global__ void Move_Atoms_Core(
         float4 const * F,
@@ -97,7 +105,6 @@ namespace moleculardynamics {
     /*!
         アルゴンに対して、分子動力学シミュレーションを行うクラス
     */
-    template <typename T>
     class Ar_moleculardynamics final {
         // #region コンストラクタ・デストラクタ
 
@@ -129,12 +136,6 @@ namespace moleculardynamics {
             原子を移動させる
         */
         void Move_Atoms();
-        
-        //! A public member function.
-        /*!
-            初期化する
-        */
-        void reset();
 
         // #endregion publicメンバ関数
 
@@ -162,62 +163,62 @@ namespace moleculardynamics {
         /*!
             初期のスーパーセルの個数
         */
-        static auto const FIRSTNC = 3;
+        static auto const FIRSTNC = 8;
 
         //! A private member variable (constant).
         /*!
             初期の格子定数のスケール
         */
-        static T const FIRSTSCALE;
+        static float const FIRSTSCALE;
 
         //! A private member variable (constant).
         /*!
             初期温度（絶対温度）
         */
-        static T const FIRSTTEMP;
+        static float const FIRSTTEMP;
 
     private:
         //! A private member variable (constant).
         /*!
             Woodcockの温度スケーリングの係数
         */
-        static T const ALPHA;
+        static float const ALPHA;
 
         //! A private member variable (constant).
         /*!
             時間刻みΔt
         */
-        static T const DT;
+        static float const DT;
         
         //! A private member variable (constant).
         /*!
             ボルツマン定数
         */
-        static T const KB;
+        static float const KB;
         
         //! A private member variable (constant).
         /*!
             SMの個数
         */
-        static auto const SMNUM = 12;
+        static auto const SMNUM = 16;
 
         //! A private member variable (constant).
         /*!
             アルゴン原子に対するε
         */
-        static T const YPSILON;
+        static float const YPSILON;
 
         //! A private member variable (constant).
         /*!
             時間刻みの二乗
         */
-        T const dt2;
+        float const dt2;
                 
         //! A private member variable.
         /*!
             格子定数
         */
-        T lat_;
+        float lat_;
 
         //! A private member variable (constant).
         /*!
@@ -241,7 +242,7 @@ namespace moleculardynamics {
         /*!
             相互作用を計算するセルの個数
         */
-        std::int32_t const ncp_ = 3;
+        std::int32_t const ncp_ = 4;
 
         //! A private member variable.
         /*!
@@ -253,7 +254,7 @@ namespace moleculardynamics {
         /*!
             周期境界条件の長さ
         */
-        T periodiclen_;
+        float periodiclen_;
                 
         //! A private member variable.
         /*!
@@ -271,55 +272,55 @@ namespace moleculardynamics {
         /*!
             カットオフ半径
         */
-        T const rc_ = 2.5;
+        float const rc_ = 2.5;
 
         //! A private member variable (constant).
         /*!
             カットオフ半径の2乗
         */
-        T const rc2_;
+        float const rc2_;
 
         //! A private member variable (constant).
         /*!
             カットオフ半径の逆数の6乗
         */
-        T const rcm6_;
+        float const rcm6_;
 
         //! A private member variable (constant).
         /*!
             カットオフ半径の逆数の12乗
         */
-        T const rcm12_;
+        float const rcm12_;
 
         //! A private member variable.
         /*!
             格子定数のスケーリングの定数
         */
-        T scale_ = Ar_moleculardynamics::FIRSTSCALE;
+        float scale_ = Ar_moleculardynamics::FIRSTSCALE;
 
         //! A private member variable.
         /*!
             計算された温度Tcalc
         */
-        T Tc_;
+        float Tc_;
 
         //! A private member variable.
         /*!
             与える温度Tgiven
         */
-        T Tg_;
+        float Tg_;
         
         //! A private member variable.
         /*!
             運動エネルギー
         */
-        T Uk_;
+        float Uk_;
 
         //! A private member variable.
         /*!
             ポテンシャルエネルギー
         */
-        T Up_;
+        float Up_;
 
         //! A private member variable.
         /*!
@@ -331,7 +332,7 @@ namespace moleculardynamics {
         /*!
             全エネルギー
         */
-        T Utot_;
+        float Utot_;
 
         //! A private member variable.
         /*!
@@ -343,7 +344,7 @@ namespace moleculardynamics {
         /*!
             ポテンシャルエネルギーの打ち切り
         */
-        T const Vrc_;
+        float const Vrc_;
         
         // #endregion メンバ変数
 
@@ -367,31 +368,24 @@ namespace moleculardynamics {
     };
 
     // #region static private 定数
-
-    template <typename T>
-    T const Ar_moleculardynamics<T>::FIRSTSCALE = 1.0;
     
-    template <typename T>
-    T const Ar_moleculardynamics<T>::FIRSTTEMP = 50.0;
-
-    template <typename T>
-    T const Ar_moleculardynamics<T>::ALPHA = 0.2;
-
-    template <typename T>
-    T const Ar_moleculardynamics<T>::DT = 0.001;
-
-    template <typename T>
-    T const Ar_moleculardynamics<T>::KB = 1.3806488E-23;
-
-    template <typename T>
-    T const Ar_moleculardynamics<T>::YPSILON = 1.6540172624E-21;
+    float const Ar_moleculardynamics::FIRSTSCALE = 1.0f;
+    
+    float const Ar_moleculardynamics::FIRSTTEMP = 50.0f;
+    
+    float const Ar_moleculardynamics::ALPHA = 0.2f;
+    
+    float const Ar_moleculardynamics::DT = 0.001f;
+    
+    float const Ar_moleculardynamics::KB = 1.3806488E-23f;
+    
+    float const Ar_moleculardynamics::YPSILON = 1.6540172624E-21f;
 
     // #endregion static private 定数
 
     // #region コンストラクタ
-
-    template <typename T>
-    Ar_moleculardynamics<T>::Ar_moleculardynamics()
+    
+    Ar_moleculardynamics::Ar_moleculardynamics()
         :
         dt2(DT * DT),
         F_dev_(Nc_ * Nc_ * Nc_ * 4),
@@ -413,15 +407,15 @@ namespace moleculardynamics {
         MD_initPos();
         MD_initVel();
 
-        periodiclen_ = lat_ * static_cast<T>(Nc_);
+        periodiclen_ = lat_ * static_cast<float>(Nc_);
     }
 
     // #endregion コンストラクタ
 
     // #region publicメンバ関数
 
-    template <typename T>
-    void Ar_moleculardynamics<T>::Calc_Forces()
+    
+    void Ar_moleculardynamics::Calc_Forces()
     {
         // 各原子に働く力の初期化
         thrust::fill(thrust::device, F_dev_.begin(), F_dev_.end(), float4());
@@ -443,9 +437,8 @@ namespace moleculardynamics {
         // ポテンシャルエネルギーの計算
         Up_ = thrust::reduce(thrust::device, Up_dev_.begin(), Up_dev_.end(), 0.0f);
     }
-
-    template <typename T>
-    void Ar_moleculardynamics<T>::Move_Atoms()
+        
+    void Ar_moleculardynamics::Move_Atoms()
     {
         // 運動エネルギーの計算
         thrust::device_vector<float> tmp(NumAtom_);
@@ -455,10 +448,10 @@ namespace moleculardynamics {
         // 全エネルギー（運動エネルギー+ポテンシャルエネルギー）の計算
         Utot_ = Uk_ + Up_;
 
-        std::cout << boost::format("MDステップ = %d, ポテンシャル = %.8f, 運動エネルギー = %.8f\n") % MD_iter_ % Up_ % Uk_;
+        //std::cout << boost::format("MDステップ = %d, ポテンシャル = %.8f, 運動エネルギー = %.8f\n") % MD_iter_ % Up_ % Uk_;
 
         // 温度の計算
-        Tc_ = Uk_ / (1.5 * static_cast<T>(NumAtom_));
+        Tc_ = Uk_ / (1.5 * static_cast<float>(NumAtom_));
 
         // calculate temperture
         auto const s = std::sqrt((Tg_ + Ar_moleculardynamics::ALPHA * (Tc_ - Tg_)) / Tc_);
@@ -497,10 +490,10 @@ namespace moleculardynamics {
 
     // #region privateメンバ関数
 
-    template <typename T>
-    void Ar_moleculardynamics<T>::MD_initPos()
+    
+    void Ar_moleculardynamics::MD_initPos()
     {
-        T sx, sy, sz;
+        float sx, sy, sz;
         auto n = 0;
         thrust::host_vector<float4> r(Nc_ * Nc_ * Nc_ * 4);
 
@@ -508,9 +501,9 @@ namespace moleculardynamics {
             for (auto j = 0; j < Nc_; j++) {
                 for (auto k = 0; k < Nc_; k++) {
                     // 基本セルをコピーする
-                    sx = static_cast<T>(i) * lat_;
-                    sy = static_cast<T>(j) * lat_;
-                    sz = static_cast<T>(k) * lat_;
+                    sx = static_cast<float>(i) * lat_;
+                    sy = static_cast<float>(j) * lat_;
+                    sz = static_cast<float>(k) * lat_;
 
                     // 基本セル内には4つの原子がある
                     r[n].x = sx;
@@ -550,9 +543,9 @@ namespace moleculardynamics {
             sz += r[n].z;
         }
 
-        sx /= static_cast<T>(NumAtom_);
-        sy /= static_cast<T>(NumAtom_);
-        sz /= static_cast<T>(NumAtom_);
+        sx /= static_cast<float>(NumAtom_);
+        sy /= static_cast<float>(NumAtom_);
+        sz /= static_cast<float>(NumAtom_);
 
         for (auto n = 0; n < NumAtom_; n++) {
             r[n].x -= sx;
@@ -563,9 +556,8 @@ namespace moleculardynamics {
         // ホスト→デバイス
         thrust::copy(r.begin(), r.end(), r_dev_.begin());
     }
-
-    template <typename T>
-    void Ar_moleculardynamics<T>::MD_initVel()
+    
+    void Ar_moleculardynamics::MD_initVel()
     {
         auto const v = std::sqrt(3.0 * Tg_);
 
@@ -596,9 +588,9 @@ namespace moleculardynamics {
             sz += V[n].z;
         }
 
-        sx /= static_cast<T>(NumAtom_);
-        sy /= static_cast<T>(NumAtom_);
-        sz /= static_cast<T>(NumAtom_);
+        sx /= static_cast<float>(NumAtom_);
+        sy /= static_cast<float>(NumAtom_);
+        sz /= static_cast<float>(NumAtom_);
 
         // 重心の並進運動を避けるために、速度の和がゼロになるように補正
         for (auto n = 0; n < NumAtom_; n++) {
@@ -752,12 +744,18 @@ namespace moleculardynamics {
 
         auto const dt2 = dt * dt;
         auto const rtmp = r[n];
-
+        
+#ifdef NVE
+        r[n].x = 2.0 * r[n].x - r1[n].x + F[n].x * dt2;
+        r[n].y = 2.0 * r[n].y - r1[n].y + F[n].y * dt2;
+        r[n].z = 2.0 * r[n].z - r1[n].z + F[n].z * dt2;
+#else
         // update coordinates and velocity
         // Verlet法の座標更新式において速度成分を抜き出し、その部分をスケールする
         r[n].x += s * (r[n].x - r1[n].x) + F[n].x * dt2;
         r[n].y += s * (r[n].y - r1[n].y) + F[n].y * dt2;
         r[n].z += s * (r[n].z - r1[n].z) + F[n].z * dt2;
+#endif
 
         V[n].x = 0.5f * (r[n].x - r1[n].x) / dt;
         V[n].y = 0.5f * (r[n].y - r1[n].y) / dt;
