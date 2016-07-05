@@ -13,7 +13,7 @@ int main()
 
     moleculardynamics::Ar_moleculardynamics armd;
     
-    cp.checkpoint("‰Šú‰»‚µ‚½", __LINE__);
+    cp.checkpoint("‰Šú‰»ˆ—", __LINE__);
 
     for (auto i = 0; i < LOOP; i++) {
         armd.Calc_Forces();
