@@ -200,7 +200,7 @@ namespace moleculardynamics {
         /*!
             SMの個数
         */
-        static auto const SMNUM = 16;
+        static auto const SMNUM = 256;
 
         //! A private member variable (constant).
         /*!
