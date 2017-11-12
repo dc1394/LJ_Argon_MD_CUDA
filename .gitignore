@@ -190,3 +190,4 @@ ModelManifest.xml
 
 *.db
 *.opendb
+/.vs/LJ_Argon_MD_CUDA/v15
