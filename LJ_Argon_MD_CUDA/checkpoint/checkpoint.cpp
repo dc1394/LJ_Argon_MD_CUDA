@@ -32,11 +32,9 @@ namespace checkpoint {
     {
     }
 
-    CheckPoint::~CheckPoint()
-    {
-    }
+    CheckPoint::~CheckPoint() = default;
 
-    void CheckPoint::checkpoint(char const * action, std::int32_t line)
+    void CheckPoint::checkpoint(char const * action, std::int32_t line) const
     {
         BOOST_ASSERT(cfp->cur < static_cast<std::int32_t>(CheckPoint::CheckPointFastImpl::N));
 
@@ -63,7 +61,7 @@ namespace checkpoint {
                           << boost::format(" elapsed time = %.4f (msec)\n") % realtime.count();
             }
 
-            prevreal = std::optional<high_resolution_clock::time_point>(itr->realtime);
+            prevreal.emplace(itr->realtime);
         }
     }
 

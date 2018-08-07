@@ -31,7 +31,6 @@ namespace checkpoint {
         //! A public member function.
         /*!
             operator newの宣言と実装
-            \param 未使用
         */
         static void * operator new(std::size_t) {
             return ArraiedAllocator<TTypeSize, TNumArray>::GetAllocator().Alloc();
@@ -46,7 +45,9 @@ namespace checkpoint {
             ArraiedAllocator<TTypeSize, TNumArray>::GetAllocator().Free(p);
         }
 
-    private:
+        // #endregion メンバ関数
+
+    public:
         // #region 禁止されたコンストラクタ・メンバ関数
 
         //! A private constructor (deleted).
@@ -54,6 +55,12 @@ namespace checkpoint {
             デフォルトコンストラクタ（禁止）
         */
         FastArenaObject() = delete;
+
+        //! A private constructor (deleted).
+        /*!
+            デフォルトデストラクタ（禁止）
+        */
+        ~FastArenaObject() = delete;
 
         //! A private copy constructor (deleted).
         /*!
@@ -64,7 +71,6 @@ namespace checkpoint {
         //! A private member function (deleted).
         /*!
             operator=()の宣言（禁止）
-            \param コピー元のオブジェクト（未使用）
             \return コピー元のオブジェクト（未使用）
         */
         FastArenaObject & operator=(FastArenaObject const &) = delete;

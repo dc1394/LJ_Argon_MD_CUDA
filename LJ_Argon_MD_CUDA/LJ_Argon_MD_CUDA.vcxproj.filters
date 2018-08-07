@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="myrandom">
-      <UniqueIdentifier>{70e11a89-7f74-4bdb-a69d-6dfac78279d0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="moleculardynamics">
-      <UniqueIdentifier>{93626a7b-703c-4c8a-9cca-090e467a7911}</UniqueIdentifier>
+      <UniqueIdentifier>{0e1cbb99-0876-4529-beb4-dc4ad95a0c93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="myrandom">
+      <UniqueIdentifier>{ea45d38b-23fb-4966-935a-698cfd183b1b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -15,13 +15,5 @@
     <ClInclude Include="myrandom\myrand.h">
       <Filter>myrandom</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="myrandom\myrand.cpp">
-      <Filter>myrandom</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="kernel.cu" />
   </ItemGroup>
 </Project>

@@ -11,17 +11,15 @@
 #pragma once
 
 #include "../myrandom/myrand.h"
-#include <cstdint>                                  // for std::int32_t
-#include <cmath>                                    // for std::sqrt, std::pow
-#include <iostream>                                 // for std::ios_base::fixed, std::ios_base::floatfield, std::cout
-#include <boost/format.hpp>                         // for boost::format
-#include <boost/range/algorithm/generate.hpp>       // for boost::generate
-#include <thrust/copy.h>                            // for thrust::copy
-#include <thrust/device_vector.h>                   // for thrust::device_vector
-#include <thrust/execution_policy.h>                // for thrust::device
-#include <thrust/host_vector.h>                     // for thrust::host_vector
-#include <thrust/reduce.h>                          // for thrust::reduce
-#include <thrust/transform.h>                       // for thrust::transform
+#include <algorithm>                    // for std::generate            
+#include <cstdint>                      // for std::int32_t
+#include <cmath>                        // for std::sqrt, std::pow
+#include <thrust/copy.h>                // for thrust::copy
+#include <thrust/device_vector.h>       // for thrust::device_vector
+#include <thrust/execution_policy.h>    // for thrust::device
+#include <thrust/host_vector.h>         // for thrust::host_vector
+#include <thrust/reduce.h>              // for thrust::reduce
+#include <thrust/transform.h>           // for thrust::transform
 
 namespace moleculardynamics {
     //! A function.
@@ -576,7 +574,7 @@ namespace moleculardynamics {
         };
 
         thrust::host_vector<float4> V(NumAtom_);
-        boost::generate(V, generator4);
+        std::generate(V.begin(), V.end(), generator4);
 
         auto sx = 0.0;
         auto sy = 0.0;

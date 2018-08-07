@@ -60,7 +60,7 @@ namespace checkpoint {
             /*!
                 唯一のコンストラクタ
             */
-            CheckPointFastImpl() : cur(0) {}
+            CheckPointFastImpl() : cur(0), points{} {}
 
             //! A destructor.
             /*!
@@ -76,7 +76,7 @@ namespace checkpoint {
             /*!
                 チェックポイントの数
             */
-            static std::size_t const N = 30;
+            static auto constexpr N = 30U;
 
             //! A public member variable.
             /*!
@@ -132,7 +132,7 @@ namespace checkpoint {
             \param line 行数
             \param action チェックポイントの名称
         */
-        void checkpoint(char const * action, std::int32_t line);
+        void checkpoint(char const * action, std::int32_t line) const;
 
         //! A public member function.
         /*!
@@ -162,7 +162,8 @@ namespace checkpoint {
 
         // #region 禁止されたコンストラクタ・メンバ関数
 
-        //! A private copy constructor (deleted).
+    public:
+        //! A public copy constructor (deleted).
         /*!
             コピーコンストラクタ（禁止）
         */
@@ -171,7 +172,6 @@ namespace checkpoint {
         //! operator=() (deleted).
         /*!
             operator=()の宣言（禁止）
-            \param コピー元のオブジェクト
             \return コピー元のオブジェクト
         */
         CheckPoint & operator=(CheckPoint const &) = delete;
