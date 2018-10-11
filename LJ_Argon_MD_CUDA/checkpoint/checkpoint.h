@@ -15,7 +15,6 @@
 #include <chrono>               // for std::chrono               
 #include <cstdint>              // for std::int32_t, std::int64_t
 #include <memory>               // for std::unique_ptr
-#include <utility>              // for std::pair
 
 namespace checkpoint {
     //! A class.
@@ -119,6 +118,7 @@ namespace checkpoint {
 
         //! A destructor.
         /*!
+            デフォルトデストラクタ
         */
         ~CheckPoint();
 
